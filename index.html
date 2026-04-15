@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Schneider EcoRetrofit IA | Grand Prix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --schneider-green: #3dcd58;
+            --schneider-dark: #1f1f1f;
+            --alert-red: #ff4b4b;
+            --bg-body: #f4f7f6;
+        }
+
+        body { font-family: 'Roboto', sans-serif; background-color: #222; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        
+        .app-shell { width: 100%; height: 100%; max-width: 400px; max-height: 850px; background: var(--bg-body); display: flex; flex-direction: column; border-radius: 30px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 8px solid #111; }
+
+        header { background: white; padding: 20px 15px; text-align: center; border-bottom: 4px solid var(--schneider-green); }
+        .logo { font-weight: 900; font-size: 1.2rem; color: var(--schneider-dark); letter-spacing: -0.5px; }
+        .logo span { color: var(--schneider-green); font-weight: 300; }
+
+        .screen { padding: 20px; display: none; height: 100%; overflow-y: auto; padding-bottom: 50px; box-sizing: border-box; }
+        .active { display: block; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Estilo da Câmera (OCR) */
+        .camera-view { width: 100%; height: 320px; background: #000; border-radius: 20px; position: relative; overflow: hidden; border: 2px solid #ddd; }
+        #cam-feed { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .ocr-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 120px; border: 2px dashed var(--schneider-green); border-radius: 10px; box-shadow: 0 0 0 999px rgba(0,0,0,0.5); }
+        .scan-line { width: 100%; height: 2px; background: var(--schneider-green); position: absolute; top: 0; animation: scanning 1.5s infinite alternate; }
+        @keyframes scanning { from { top: 0; } to { top: 100%; } }
+
+        /* Dashboard de Sustentabilidade */
+        .dash-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; }
+        .dash-card i { font-size: 1.8rem; color: #888; width: 40px; text-align: center; }
+        .dash-info { flex-grow: 1; margin-left: 10px; }
+        .dash-info p { margin: 0; font-size: 0.7rem; color: #666; text-transform: uppercase; font-weight: bold; }
+        .dash-val { font-family: 'Roboto Mono', monospace; font-size: 1.4rem; font-weight: bold; color: var(--schneider-dark); }
+        .bad-metric { color: var(--alert-red) !important; }
+
+        /* Card de Resultado IA */
+        .roi-box { background: var(--schneider-dark); color: white; padding: 15px; border-radius: 12px; margin-top: 15px; }
+        .roi-box span { color: var(--schneider-green); font-size: 1.2rem; font-weight: bold; display: block; margin-top: 5px; }
+
+        .btn { background: var(--schneider-green); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; }
+        .btn-dark { background: var(--schneider-dark); }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <header><div class="logo">SCHNEIDER <span>ECORETROFIT IA</span></div></header>
+
+    <div id="scr-home" class="screen active">
+        <h3 style="margin-top:0;">Purgatório Tecnológico</h3>
+        <p style="font-size: 0.85rem; color: #666;">Aponte a câmera para a placa de metal desgastada ou para a silhueta da máquina legada.</p>
+        
+        <div class="camera-view">
+            <video id="cam-feed" autoplay playsinline></video>
+            <div class="ocr-box"><div class="scan-line"></div></div>
+            <p style="position:absolute; bottom:10px; width:100%; text-align:center; color:white; font-size:0.7rem; font-family:'Roboto Mono'">Lendo OCR / Identificação Visual...</p>
+        </div>
+        <button class="btn" onclick="simularLeitura()">ANALISAR MÁQUINA</button>
+    </div>
+
+    <div id="scr-dash" class="screen">
+        <h3 style="margin:0;">Ativo Identificado</h3>
+        <p style="font-size: 0.8rem; color: var(--schneider-green); font-weight:bold; margin-bottom: 20px;">✓ Prensa Hidráulica Legada (Est. 1985)</p>
+
+        <div class="dash-card">
+            <i class="fas fa-bolt"></i>
+            <div class="dash-info"><p>Consumo Estimado</p><span class="dash-val bad-metric" id="v-kwh">0.0</span> <small>kWh</small></div>
+        </div>
+        <div class="dash-card">
+            <i class="fas fa-smog"></i>
+            <div class="dash-info"><p>Emissão de CO₂</p><span class="dash-val bad-metric" id="v-co2">0.0</span> <small>kg/h</small></div>
+        </div>
+        <div class="dash-card" style="border-left: 4px solid orange;">
+            <i class="fas fa-exclamation-triangle" style="color:orange"></i>
+            <div class="dash-info"><p>Eficiência Energética</p><span class="dash-val" style="color:orange">D (Baixa)</span></div>
+        </div>
+
+        <button class="btn btn-dark" onclick="simularIA()">GERAR PRESCRIÇÃO RETROFIT</button>
+    </div>
+
+    <div id="scr-res" class="screen">
+        <h3 style="color:var(--schneider-green);"><i class="fas fa-leaf"></i> Plano de Descarbonização</h3>
+        
+        <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd;">
+            <p style="font-size: 0.85rem; color: #444; margin: 0 0 10px 0;">Para modernizar este ativo e gerar relatórios ESG, a Schneider prescreve o seguinte Retrofit:</p>
+            <b style="color: var(--schneider-dark);"><i class="fas fa-microchip"></i> 1x Inversor Altivar Process</b><br>
+            <b style="color: var(--schneider-dark);"><i class="fas fa-wave-square"></i> 1x Sensor de Vibração/Corrente</b>
+        </div>
+
+        <div class="roi-box">
+            <p style="margin:0; font-size:0.8rem; color:#ccc; text-transform:uppercase;">Retorno sobre Investimento (ROI)</p>
+            <span>Payback: 8 Meses</span>
+            <hr style="border-color: #444; margin: 10px 0;">
+            <p style="margin:0; font-size:0.8rem; color:#ccc;">Redução de CO₂ Estimada:</p>
+            <span style="color: #00a8ff;">- 35% de Emissões Anuais</span>
+        </div>
+
+        <button class="btn" onclick="location.reload()">EXPORTAR PARA ECOSTRUXURE</button>
+    </div>
+
+    <div id="scr-load" class="screen">
+        <div style="text-align:center; margin-top:150px">
+            <i class="fas fa-qrcode fa-spin" style="font-size:3rem; color:var(--schneider-green)"></i>
+            <h3 id="lt" style="color:white; mix-blend-mode: difference;">Consultando Banco Histórico</h3>
+            <div style="width:100%; height:6px; background:#ddd; border-radius:10px; margin-top:20px; overflow:hidden">
+                <div id="pb" style="width:0%; height:100%; background:var(--schneider-green); transition:0.2s"></div>
+            </div>
+            <p id="ls" style="font-size: 0.8rem; margin-top:10px; font-family:'Roboto Mono';">Processando OCR da Placa...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let loop;
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(s=>document.getElementById('cam-feed').srcObject=s);
+
+    function show(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+    function runLoading(t, sub, dst, cb) {
+        show('scr-load'); document.getElementById('lt').innerText = t; document.getElementById('ls').innerText = sub;
+        let p = 0; const bar = document.getElementById('pb'); bar.style.width = '0%';
+        const i = setInterval(() => {
+            p += 15; bar.style.width = p+'%';
+            if(p>=100) { clearInterval(i); cb(); setTimeout(()=>show(dst), 300); }
+        }, 300);
+    }
+
+    function simularLeitura() {
+        runLoading('Inteligência Artificial', 'Buscando Gêmeo Digital Histórico...', 'scr-dash', () => {
+            let kwh = 85.0; let co2 = 42.5;
+            loop = setInterval(() => {
+                document.getElementById('v-kwh').innerText = (kwh + Math.random()*2).toFixed(1);
+                document.getElementById('v-co2').innerText = (co2 + Math.random()).toFixed(1);
+            }, 800);
+        });
+    }
+
+    function simularIA() {
+        clearInterval(loop);
+        runLoading('Motor de Retrofit', 'Calculando viabilidade e ROI...', 'scr-res', () => {});
+    }
+</script>
+
+</body>
+</html>
